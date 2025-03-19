@@ -58,6 +58,13 @@ flutter:
     - assets/icons/dog.png
     - assets/icons/rabbits.png
     - assets/icons/raven.png
+    - assets/images/donate1.png
+    - assets/images/qr1.png
+    - assets/images/donate2.png
+    - assets/images/qr2.png
+    - assets/images/donate3.png
+    - assets/images/qr3.png
+
 
 
 

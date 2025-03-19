@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'page/homepage.dart';
 import 'page/explore.dart';
-
+import 'page/donation.dart';
 class Buttomnav extends StatefulWidget {
   const Buttomnav({super.key});
 
@@ -11,7 +11,7 @@ class Buttomnav extends StatefulWidget {
 
 class _Buttomnav extends State<Buttomnav> {
   int current_page = 0;
-  List page = [Homepage(), Explore()];
+  List page = [Homepage(), Explore(), Donation()];
   @override
   Widget build(BuildContext context) {
     return Scaffold(

@@ -8,14 +8,7 @@ class Donation extends StatefulWidget {
 }
 
 class _DonationState extends State<Donation> {
-  int _currentIndex = 0; // ตัวแปรเก็บ index ของหน้า
 
-  final List<Widget> _page = [
-    Center(child: Text("homepage")), // เปลี่ยนเป็นหน้าอื่นที่ต้องการ
-    Center(child: Text("Explore")),
-    Center(child: Text("Donate")),
-    Center(child: Text("Profile")),
-  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,22 +77,8 @@ class _DonationState extends State<Donation> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index; // อัปเดตหน้าที่เลือก
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.pets), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.attach_money), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ""),
-        ],
-      ),
     );
+      
   }
 
   Widget donationCard({
