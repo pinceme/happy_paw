@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'page/homepage.dart';
 import 'page/explore.dart';
 import 'page/donation.dart';
+import 'page/profile.dart';
 
 
 import 'package:happy_paw/buttomnav.dart';
