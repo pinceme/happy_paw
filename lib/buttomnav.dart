@@ -3,6 +3,7 @@ import 'page/homepage.dart';
 import 'page/explore.dart';
 import 'page/donation.dart';
 import 'page/profile.dart';
+
 class Buttomnav extends StatefulWidget {
   const Buttomnav({super.key});
 
@@ -18,6 +19,9 @@ class _Buttomnav extends State<Buttomnav> {
     return Scaffold(
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Color(0xFFEAB816),
+
+        selectedFontSize: 14,
+        unselectedFontSize: 12,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.teal,
         unselectedItemColor: Colors.black54,
@@ -30,8 +34,14 @@ class _Buttomnav extends State<Buttomnav> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.public), label: 'Explore'),
-          BottomNavigationBarItem(icon: Icon(Icons.attach_money),label: 'Donate',),
-          BottomNavigationBarItem(icon: Icon(Icons.account_circle),label: 'Profile',),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.attach_money),
+            label: 'Donate',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_circle),
+            label: 'Profile',
+          ),
         ],
       ),
       body: page[current_page],

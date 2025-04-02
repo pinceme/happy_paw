@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-class Explore extends StatefulWidget {
+
+class Explorefav extends StatefulWidget {
   @override
-  State<Explore> createState() => _ExploreState();
+  State<Explorefav> createState() => _ExploreState();
 }
 
-class _ExploreState extends State<Explore> {
+class _ExploreState extends State<Explorefav> {
   @override
   Widget build(BuildContext context) {
     return HomeScreen(); // 🔥 ใช้ HomeScreen() ตรงๆ แทน MaterialApp
@@ -23,6 +24,19 @@ class HomeScreen extends StatelessWidget {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(10.0),
+            child: Row(
+              children: [
+                const Icon(Icons.favorite, color: Colors.red),
+                const SizedBox(width: 8),
+                const Text(
+                  'Favorites',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: TextField(
@@ -139,5 +153,5 @@ class DetailScreen extends StatelessWidget {
 }
 
 void main() {
-  runApp(Explore());
+  runApp(Explorefav());
 }

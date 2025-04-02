@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'detail.dart';
+import 'explore.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -59,68 +61,79 @@ class _HomepageState extends State<Homepage> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // ✅ แก้จาก child เป็น children แล้วเพิ่ม Row
-            Row(
+             GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Explore (),
+                  ),
+                );
+              },
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _categoryIcon('assets/icons/dog.png', Colors.teal),
                 _categoryIcon('assets/icons/cat.png', Colors.amber),
-                _categoryIcon(
-                  'assets/icons/rabbits.png',
-                  Colors.teal,
-                ), // ✅ เปลี่ยนจาก rabbits.png
-                _categoryIcon(
-                  'assets/icons/raven.png',
-                  Colors.amber,
-                ), // ✅ เปลี่ยนจาก raven.png
+                _categoryIcon('assets/icons/rabbits.png', Colors.teal),
+                _categoryIcon('assets/icons/raven.png', Colors.amber),
               ],
             ),
-
+             ),
             const SizedBox(height: 20),
-            const Text(
-              'Missing pets',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            Card(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: Image.asset(
-                      'assets/images/cat.jpg',
-                      height: 250,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
+
+            // ✅ ครอบ GestureDetector ไว้ที่ Card
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PetDetailScreen(),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Berito',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                );
+              },
+              child: Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Column(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.asset(
+                        'assets/images/cat.jpg',
+                        height: 250,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Text('Error loading image');
+                        },
+                      ),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Berito',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            Icon(Icons.male, color: Colors.red),
-                            SizedBox(width: 5),
-                            Text('Nakornpathom (Current location)'),
-                          ],
-                        ),
-                      ],
+                          Row(
+                            children: [
+                              Icon(Icons.male, color: Colors.red),
+                              SizedBox(width: 5),
+                              Text('Nakornpathom (Current location)'),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],
@@ -135,7 +148,7 @@ class _HomepageState extends State<Homepage> {
       height: 70,
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(15), // ทำให้มุมมน
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
