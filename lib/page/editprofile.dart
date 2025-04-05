@@ -1,26 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'package:http/http.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: AddmissPetScreen(),
-    );
+    return MaterialApp(debugShowCheckedModeBanner: false, home: Editprofile());
   }
 }
 
-class AddmissPetScreen extends StatefulWidget {
+class Editprofile extends StatefulWidget {
   @override
   _AddPetScreenState createState() => _AddPetScreenState();
 }
 
-class _AddPetScreenState extends State<AddmissPetScreen> {
+class _AddPetScreenState extends State<Editprofile> {
   final _formKey = GlobalKey<FormState>();
   File? _image;
 
@@ -60,7 +56,7 @@ class _AddPetScreenState extends State<AddmissPetScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Add missing pet',
+                  'Edit Profile',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 24),
@@ -91,65 +87,10 @@ class _AddPetScreenState extends State<AddmissPetScreen> {
                 const SizedBox(height: 12),
                 _buildTextField(label: 'Pet Name*'),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: 'Pet Type*',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 14,
-                          ),
-                        ),
-                        items:
-                            ['Dog', 'Cat', 'Rabbit', 'Bird']
-                                .map(
-                                  (type) => DropdownMenuItem(
-                                    value: type,
-                                    child: Text(type),
-                                  ),
-                                )
-                                .toList(),
-                        onChanged: (value) {
-                          print('Selected Pet Type: $value');
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'Please select a pet type';
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(child: _buildTextField(label: 'Breeds*')),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildTextField(label: 'Gender*')),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(child: _buildTextField(label: 'Age*')),
-                    const SizedBox(width: 16),
-                    Expanded(child: _buildTextField(label: 'Weight*')),
-                  ],
-                ),
+
                 const SizedBox(height: 24),
                 _buildTextField(label: 'Current location*'),
                 const SizedBox(height: 16),
-                _buildTextField(
-                  label: 'About Pet (Personality, Special Needs, etc.)',
-                  maxLines: 5,
-                ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,

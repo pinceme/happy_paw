@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:happy_paw/page/homepage.dart';
 import 'package:happy_paw/page/signup.dart';
 import 'package:flutter/gestures.dart';
+import 'package:happy_paw/buttomnav.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -145,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen> {
         
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => Homepage()),
+          MaterialPageRoute(builder: (context) => Buttomnav()),
         );
       } else {
         

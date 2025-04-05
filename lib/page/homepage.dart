@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'detail.dart';
 import 'explore.dart';
 
@@ -61,25 +64,23 @@ class _HomepageState extends State<Homepage> {
               ),
             ),
             const SizedBox(height: 20),
-             GestureDetector(
+            GestureDetector(
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => Explore (),
-                  ),
+                  MaterialPageRoute(builder: (context) => Explore()),
                 );
               },
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                _categoryIcon('assets/icons/dog.png', Colors.teal),
-                _categoryIcon('assets/icons/cat.png', Colors.amber),
-                _categoryIcon('assets/icons/rabbits.png', Colors.teal),
-                _categoryIcon('assets/icons/raven.png', Colors.amber),
-              ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _categoryIcon('assets/icons/dog.png', Colors.teal),
+                  _categoryIcon('assets/icons/cat.png', Colors.amber),
+                  _categoryIcon('assets/icons/rabbits.png', Colors.teal),
+                  _categoryIcon('assets/icons/raven.png', Colors.amber),
+                ],
+              ),
             ),
-             ),
             const SizedBox(height: 20),
 
             // ✅ ครอบ GestureDetector ไว้ที่ Card
@@ -87,9 +88,7 @@ class _HomepageState extends State<Homepage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => const PetDetailScreen(),
-                  ),
+                  MaterialPageRoute(builder: (context) => PetDetailScreen()),
                 );
               },
               child: Card(

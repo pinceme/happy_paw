@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import "Addpet.dart";
 import 'Addmissingpet.dart';
 import 'favorite.dart';
+import 'editprofile.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -29,34 +30,47 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-            Container(
-              padding: EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.teal,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundImage: NetworkImage(
-                      'https://via.placeholder.com/150',
+
+            // ======================== ✅ แก้ไขตรงนี้ ✅ ========================
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Editprofile()),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.teal,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundImage: NetworkImage(
+                        'https://via.placeholder.com/150',
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 15),
-                  Text(
-                    'Wisswaprint London',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                    SizedBox(width: 15),
+                    Text(
+                      'Wisswaprint London',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
+
+            // ====================================================================
             SizedBox(height: 20),
+
             Container(
               padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
