@@ -1,25 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: PetDetailScreen(),
-    );
-  }
-}
+import 'dart:io';
+import 'package:happy_paw/model/pet.dart';
+import 'package:happy_paw/model/databasehelper.dart';
 
 class PetDetailScreen extends StatefulWidget {
-  const PetDetailScreen({super.key});
+  final Pet? pet;
+  final int? petId;
+
+  const PetDetailScreen({Key? key, this.pet, this.petId}) : super(key: key);
 
   @override
   State<PetDetailScreen> createState() => _PetDetailScreenState();
@@ -28,15 +18,39 @@ class PetDetailScreen extends StatefulWidget {
 class _PetDetailScreenState extends State<PetDetailScreen> {
   String? dogFact;
   bool isLoading = true;
+  Pet? currentPet;
 
   @override
   void initState() {
     super.initState();
+    _loadPetData();
     fetchDogFact();
   }
 
+  Future<void> _loadPetData() async {
+    try {
+      if (widget.pet != null) {
+        setState(() {
+          currentPet = widget.pet;
+          isLoading = false;
+        });
+      } else if (widget.petId != null) {
+        final pet = await DatabaseHelper.instance.getAllPets();
+        setState(() {
+          currentPet = pet?.firstWhere((p) => p.id == widget.petId);
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading pet data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
   Future<void> fetchDogFact() async {
-    final url = Uri.parse('https://dogapi.dog/api/v1/facts?number=150');
+    final url = Uri.parse('https://dogapi.dog/api/v1/facts?number=1');
     try {
       final response = await http.get(url);
       if (response.statusCode == 200) {
@@ -65,13 +79,24 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (currentPet == null) {
+      return Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.teal,
+          title: const Text('Happy Paw', style: TextStyle(color: Colors.white)),
+          centerTitle: true,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
         title: const Text('Happy Paw', style: TextStyle(color: Colors.white)),
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -82,69 +107,102 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🐶 รูปภาพ
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.asset(
-                "assets/images/dogd1.png",
-                height: 300,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child:
+                  currentPet!.imagePath != null
+                      ? Image.file(
+                        File(currentPet!.imagePath!),
+                        height: 300,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                      : Image.asset(
+                        "assets/images/pet_placeholder.png",
+                        height: 300,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
             ),
             const SizedBox(height: 16),
-
-            // ชื่อและสายพันธุ์ + ปุ่ม Favorite
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                RichText(
-                  text: const TextSpan(
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                    children: [
-                      TextSpan(text: "Dobber "),
-                      TextSpan(
-                        text: "(Labrador)",
-                        style: TextStyle(
-                          fontSize: 20,
-                          color: Color.fromARGB(255, 175, 139, 38),
-                          fontWeight: FontWeight.normal,
-                        ),
+                Expanded(
+                  child: RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
-                    ],
+                      children: [
+                        TextSpan(text: "${currentPet!.name} "),
+                        TextSpan(
+                          text: "(${currentPet!.breed})",
+                          style: const TextStyle(
+                            fontSize: 20,
+                            color: Color.fromARGB(255, 175, 139, 38),
+                            fontWeight: FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 const FavoriteButton(),
               ],
             ),
-
-            // สถานที่
             const SizedBox(height: 8),
             Row(
-              children: const [
-                Icon(Icons.location_on, color: Colors.redAccent, size: 16),
-                SizedBox(width: 4),
-                Text("Nakornpathom"),
+              children: [
+                const Icon(
+                  Icons.location_on,
+                  color: Colors.redAccent,
+                  size: 16,
+                ),
+                const SizedBox(width: 4),
+                Text(currentPet!.location),
               ],
             ),
             const SizedBox(height: 12),
-
-            // ข้อมูลแท็ก
             Wrap(
               spacing: 8,
               children: [
-                _tag("5 month", Colors.teal, Colors.white),
-                _tag("Male", Colors.teal, Colors.white),
-                _tag("2 kg", const Color(0xFFEAB816), Colors.black),
+                _tag(currentPet!.age, Colors.teal, Colors.white),
+                _tag(currentPet!.gender, Colors.teal, Colors.white),
+                _tag(
+                  "${currentPet!.weight}",
+                  const Color(0xFFEAB816),
+                  Colors.black,
+                ),
               ],
             ),
             const SizedBox(height: 20),
-
-            // กล่องข้อมูลเจ้าของ
+            if (currentPet!.about.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey[300]!),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "About this pet",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(currentPet!.about),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
                 color: Colors.teal,
@@ -162,7 +220,6 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // เจ้าของ + ข้อความ
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -180,9 +237,9 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
-                                  "Wisswaprint London",
-                                  style: TextStyle(
+                                Text(
+                                  currentPet!.ownerName,
+                                  style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                     color: Color.fromARGB(255, 245, 243, 134),
@@ -202,9 +259,9 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                                       ),
                                     ],
                                   ),
-                                  child: const Text(
-                                    "สวัสดีครับผมชื่อเขียว เจอสุนัขตัวนี้หลงอยู่แถวบ้าน ผมดูแลให้อาหาร อาบน้ำ และพาไปฉีดยาเรียบร้อย แต่ตอนนี้ผมมีสุนัขอยู่แล้ว 6 ตัว เลยคิดว่าอาจจะดูแลต่อไม่ไหว ผมจึงอยากให้เขาได้บ้านใหม่ที่พร้อมกว่าผม ถ้าใครสนใจโปรดติดต่อผมได้ครับ",
-                                    style: TextStyle(
+                                  child: Text(
+                                    currentPet!.ownerMessage,
+                                    style: const TextStyle(
                                       fontSize: 12,
                                       color: Colors.black,
                                     ),
@@ -218,11 +275,15 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          _contactBox(Icons.chat, "DragonG", Colors.blue),
+                          _contactBox(
+                            Icons.chat,
+                            currentPet!.contactChat,
+                            Colors.blue,
+                          ),
                           const SizedBox(width: 8),
                           _contactBox(
                             Icons.phone,
-                            "093-123-1234",
+                            currentPet!.contactPhone,
                             Colors.green,
                           ),
                         ],
@@ -232,10 +293,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 16),
-
-            // 🐾 DOG FACT ด้านล่างสุด
             if (isLoading)
               const Center(child: CircularProgressIndicator())
             else if (dogFact != null)
@@ -261,6 +319,51 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                   ],
                 ),
               ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 1,
+              blurRadius: 5,
+              offset: const Offset(0, -3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  if (currentPet != null) {
+                    Navigator.pop(context, currentPet);
+                  }
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('ส่งคำขอรับเลี้ยงสัตว์เรียบร้อยแล้ว'),
+                      backgroundColor: Colors.teal,
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'ยืนยัน',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -320,6 +423,15 @@ class _FavoriteButtonState extends State<FavoriteButton> {
         setState(() {
           isFavorite = !isFavorite;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isFavorite ? 'เพิ่มในรายการโปรดแล้ว' : 'นำออกจากรายการโปรดแล้ว',
+            ),
+            backgroundColor: isFavorite ? Colors.green : Colors.grey,
+            duration: const Duration(seconds: 1),
+          ),
+        );
       },
     );
   }

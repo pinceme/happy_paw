@@ -3,6 +3,7 @@ import "Addpet.dart";
 import 'Addmissingpet.dart';
 import 'favorite.dart';
 import 'editprofile.dart';
+import 'signup.dart';
 
 class ProfileScreen extends StatelessWidget {
   @override
@@ -107,7 +108,10 @@ class ProfileScreen extends StatelessWidget {
                     );
                   }),
                   buildMenuButton(Icons.exit_to_app, 'Logout', () {
-                    print("User Logged Out");
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => SignUpScreen()),
+                    );
                   }),
                 ],
               ),

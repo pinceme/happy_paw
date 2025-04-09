@@ -1,0 +1,65 @@
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart';
+import 'pet.dart';
+
+class DatabaseHelper {
+  static final DatabaseHelper instance = DatabaseHelper._init();
+  static Database? _database; // ✅ ถูกต้อง
+
+  DatabaseHelper._init();
+
+  Future<Database> get database async {
+    // ✅ return Database
+    if (_database != null) return _database!;
+    _database = await _initDB('happypaw.db');
+    return _database!;
+  }
+
+  Future<Database> _initDB(String filePath) async {
+    // ✅ แก้ Pet → Database
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, filePath);
+
+    return await openDatabase(path, version: 1, onCreate: _createDB);
+  }
+
+  Future _createDB(Database db, int version) async {
+    // ✅ แก้ Pet → Database
+    await db.execute('''
+      CREATE TABLE pets(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL,
+        breed TEXT NOT NULL,
+        gender TEXT NOT NULL,
+        age TEXT NOT NULL,
+        weight TEXT NOT NULL,
+        location TEXT NOT NULL,
+        about TEXT,
+        imagePath TEXT,
+        ownerName TEXT NOT NULL,
+        ownerMessage TEXT,
+        contactChat TEXT,
+        contactPhone TEXT
+      )
+    ''');
+  }
+
+  Future<List<Pet>> getAllPets() async {
+    final db = await instance.database;
+    final result = await db.query('pets');
+    return result.map((map) => Pet.fromMap(map)).toList();
+  }
+
+  Future<int> insertPet(Pet pet) async {
+    final db = await instance.database;
+    return await db.insert('pets', pet.toMap());
+  }
+
+  Future<void> deleteAllPets() async {
+    final db = await instance.database;
+    await db.delete('pets');
+  }
+
+  // ... อื่น ๆ (insertPet, getPet, updatePet, deletePet) ใส่ต่อได้
+}
