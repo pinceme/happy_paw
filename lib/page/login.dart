@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:happy_paw/page/favorite.dart';
 import 'package:happy_paw/page/homepage.dart';
-import 'package:happy_paw/page/signup.dart';
+import '/model/auth_service.dart';
+import '/page/profile.dart';
+import '/page/signup.dart';
 import 'package:flutter/gestures.dart';
-import 'package:happy_paw/buttomnav.dart';
+import '/buttomnav.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -10,13 +13,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _formKey = GlobalKey<FormState>(); // ใช้สำหรับตรวจสอบฟอร์ม
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false; // เพิ่มตัวแปรสำหรับแสดงสถานะการโหลด
 
-  // ตัวอย่างข้อมูล
-  String username = 'user'; 
-  String password = '1234'; 
+  final AuthService _authService = AuthService();
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
       body: Center(
         child: SingleChildScrollView(
           child: Form(
-            key: _formKey, 
+            key: _formKey,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -54,23 +56,29 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      buildInputField('Username', controller: _usernameController),
+                      buildInputField('Username or Email', controller: _usernameController),
                       buildInputField('Password', controller: _passwordController, isPassword: true),
                       SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _validateLogin,
+                          onPressed: _isLoading ? null : _validateLogin, // ปิดปุ่มถ้ากำลังโหลด
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.amber[700],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: Text(
-                            'Login',
-                            style: TextStyle(color: Colors.black),
-                          ),
+                          child: _isLoading 
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(color: Colors.black),
+                              )
+                            : Text(
+                                'Login',
+                                style: TextStyle(color: Colors.black),
+                              ),
                         ),
                       ),
                       SizedBox(height: 10),
@@ -88,7 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
-                                  
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(builder: (context) => SignUpScreen()),
@@ -121,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: isPassword,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.amber[700],
+            fillColor: Colors.amber[50], // ปรับให้อ่อนลงเพื่อให้เห็นข้อความชัดเจน
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -139,21 +146,76 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _validateLogin() {
+  void _validateLogin() async {
     if (_formKey.currentState!.validate()) {
+      // แสดงสถานะกำลังโหลด
+      setState(() {
+        _isLoading = true;
+      });
       
-      if (_usernameController.text == username && _passwordController.text == password) {
+      final username = _usernameController.text.trim();
+      final password = _passwordController.text;
+
+      try {
+        print('Attempting login with: $username');
+        final user = await _authService.login(username, password);
         
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => Buttomnav()),
-        );
-      } else {
+        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        if (!mounted) return;
+        
+        setState(() {
+          _isLoading = false;
+        });
+        
+        if (user != null) {
+          print('Login successful for user: ${user.username}');
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => Buttomnav()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Login failed: User not found'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } catch (e) {
+        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        if (!mounted) return;
+        
+        setState(() {
+          _isLoading = false;
+        });
+        
+        String errorMessage = 'Login failed';
+        
+        // แสดงข้อความที่เฉพาะเจาะจงมากขึ้น
+        if (e.toString().contains('User not found')) {
+          errorMessage = 'Username or email not found';
+        } else if (e.toString().contains('Invalid password')) {
+          errorMessage = 'Incorrect password';
+        } else {
+          errorMessage = 'Login failed: ${e.toString()}';
+        }
         
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Username or password is incorrect')),
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
         );
+        
+        print('Login error: $e');
       }
     }
+  }
+  
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

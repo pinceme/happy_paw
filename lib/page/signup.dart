@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '/model/auth_service.dart';
 import 'login.dart';
 import 'package:flutter/gestures.dart';
 
@@ -8,28 +9,87 @@ class SignUpScreen extends StatefulWidget {
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  final _formKey = GlobalKey<FormState>(); 
+  final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
+  bool _isLoading = false; // เพิ่มตัวแปรสำหรับแสดงสถานะการโหลด
 
-  void _validateForm() {
+  final AuthService _authService = AuthService();
+
+  void _validateForm() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sign Up Successful!'),
-          duration: Duration(seconds: 4), 
-        ),
-      );
-
-     
-      Future.delayed(Duration(seconds: 2), () {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
-        );
+      // แสดงสถานะกำลังโหลด
+      setState(() {
+        _isLoading = true;
       });
+      
+      final username = _usernameController.text.trim();
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      try {
+        print('Attempting to sign up user: $username, $email');
+        await _authService.signUp(
+          username: username,
+          email: email,
+          password: password,
+        );
+
+        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        if (!mounted) return;
+        
+        setState(() {
+          _isLoading = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Sign Up Successful! Redirecting to login...'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+
+        Future.delayed(Duration(seconds: 2), () {
+          // ตรวจสอบการ mount อีกครั้งก่อนเปลี่ยนหน้า
+          if (!mounted) return;
+          
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginScreen()),
+          );
+        });
+      } catch (e) {
+        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        if (!mounted) return;
+        
+        setState(() {
+          _isLoading = false;
+        });
+        
+        String errorMessage = 'Sign Up Failed';
+        
+        // แสดงข้อความที่เฉพาะเจาะจงมากขึ้น
+        if (e.toString().contains('Username already exists')) {
+          errorMessage = 'Username already exists. Please choose another one.';
+        } else if (e.toString().contains('Email already exists')) {
+          errorMessage = 'Email already exists. Please use another email or try to login.';
+        } else {
+          errorMessage = 'Sign Up Failed: ${e.toString()}';
+        }
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        
+        print('Sign up error: $e');
+      }
     }
   }
 
@@ -59,29 +119,54 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       Center(
                         child: Text(
                           'Sign Up',
-                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       SizedBox(height: 20),
-                      buildInputField('Username', controller: _usernameController),
-                      buildInputField('Email', controller: _emailController, isEmail: true),
-                      buildInputField('Password', controller: _passwordController, isPassword: true),
-                      buildInputField('Confirm Password', controller: _confirmPasswordController, isPassword: true),
+                      buildInputField(
+                        'Username',
+                        controller: _usernameController,
+                      ),
+                      buildInputField(
+                        'Email',
+                        controller: _emailController,
+                        isEmail: true,
+                      ),
+                      buildInputField(
+                        'Password',
+                        controller: _passwordController,
+                        isPassword: true,
+                      ),
+                      buildInputField(
+                        'Confirm Password',
+                        controller: _confirmPasswordController,
+                        isPassword: true,
+                        isConfirmPassword: true,
+                      ),
                       SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _validateForm,
+                          onPressed: _isLoading ? null : _validateForm, // ปิดปุ่มถ้ากำลังโหลด
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:Colors.amber[700],
+                            backgroundColor: Colors.amber[700],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
-                          child: Text(
-                            'Sign Up',
-                            style: TextStyle(color: Colors.black),
-                          ),
+                          child: _isLoading 
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(color: Colors.black),
+                              )
+                            : Text(
+                                'Sign Up',
+                                style: TextStyle(color: Colors.black),
+                              ),
                         ),
                       ),
                       SizedBox(height: 10),
@@ -101,7 +186,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   ..onTap = () {
                                     Navigator.pushReplacement(
                                       context,
-                                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                                      MaterialPageRoute(
+                                        builder: (context) => LoginScreen(),
+                                      ),
                                     );
                                   },
                               ),
@@ -120,7 +207,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget buildInputField(String label, {bool isPassword = false, bool isEmail = false, TextEditingController? controller}) {
+  Widget buildInputField(
+    String label, {
+    bool isPassword = false,
+    bool isEmail = false,
+    bool isConfirmPassword = false,
+    TextEditingController? controller,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -131,7 +224,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           obscureText: isPassword,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.amber[700],
+            fillColor: Colors.amber[50], // ปรับให้อ่อนลงเพื่อให้เห็นข้อความชัดเจน
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -144,7 +237,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
             if (isEmail && !RegExp(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$").hasMatch(value)) {
               return 'Please enter a valid email';
             }
-            if (isPassword && label == 'Confirm Password' && value != _passwordController.text) {
+            if (isPassword && !isConfirmPassword && value.length < 6) {
+              return 'Password must be at least 6 characters';
+            }
+            if (isConfirmPassword && value != _passwordController.text) {
               return 'Passwords do not match';
             }
             return null;
@@ -153,5 +249,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         SizedBox(height: 10),
       ],
     );
+  }
+  
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
   }
 }
