@@ -193,8 +193,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
                     decoration: BoxDecoration(
-                      color: Color(0xFF8DE4D3), // สีเขียวมินต์อ่อนตามภาพตัวอย่าง
-                      borderRadius: BorderRadius.circular(30),
+                      color: Colors.teal, 
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
                       children: [
@@ -249,7 +249,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFFF6D173), // สีเหลืองอำพันตามภาพตัวอย่าง
+                                  color: Color(0xFFF6D173), 
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -258,7 +258,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 email,
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Color(0xFFF6D173), // สีเหลืองอำพันตามภาพตัวอย่าง
+                                  color: Color(0xFFF6D173), 
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -283,24 +283,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: Colors.amber,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black26,
-            blurRadius: 5,
-            offset: Offset(0, 3),
-          ),
+          
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'เมนู',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          
           SizedBox(height: 15),
           buildMenuButton(Icons.pets, 'Add new pet', () {
             Navigator.push(
@@ -343,7 +332,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
         child: Container(
-          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(10),
