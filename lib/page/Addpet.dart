@@ -5,20 +5,15 @@ import 'dart:math';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
-import 'package:happy_paw/model/databasehelper.dart';
+import 'package:happy_paw/model/petdatabasehelper.dart';
 import 'package:happy_paw/model/pet.dart';
 
-const defaultOwnerName = "Wisswaprint London";
+const defaultOwnerName = " ";
 const defaultOwnerMessage = '''
-สวัสดีครับผมชื่อเขียว เจอสุนัขตัวนี้หลงอยู่แถวบ้าน 
-ผมดูแลให้อาหาร อาบน้ำ และพาไปฉีดยาเรียบร้อย 
-แต่ตอนนี้ผมมีสุนัขอยู่แล้ว 6 ตัว เลยคิดว่าอาจจะดูแลต่อไม่ไหว 
-ผมจึงอยากให้เขาได้บ้านใหม่ที่พร้อมกว่าผม 
-ถ้าใครสนใจโปรดติดต่อผมได้ครับ
 ''';
 
 class AddPetScreen extends StatefulWidget {
-  const AddPetScreen({Key? key}) : super(key: key);
+  const AddPetScreen({super.key});
 
   @override
   _AddPetScreenState createState() => _AddPetScreenState();

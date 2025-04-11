@@ -61,5 +61,12 @@ class DatabaseHelper {
     await db.delete('pets');
   }
 
+  Future<int> deletePet(int id) async {
+    final db = await instance.database;
+    return await db.delete('pets', where: 'id = ?', whereArgs: [id]);
+  }
+
+  getPet(int id) {}
+
   // ... อื่น ๆ (insertPet, getPet, updatePet, deletePet) ใส่ต่อได้
 }

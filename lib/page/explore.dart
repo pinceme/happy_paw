@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:happy_paw/model/pet.dart';
-import 'package:happy_paw/model/databasehelper.dart';
+import 'package:happy_paw/model/petdatabasehelper.dart';
 import 'package:happy_paw/page/detail.dart';
 import 'package:happy_paw/page/addpet.dart';
 import 'dart:io';
 
 class Explore extends StatefulWidget {
-  const Explore({Key? key}) : super(key: key);
+  const Explore({super.key});
 
   @override
   State<Explore> createState() => _ExploreState();
@@ -20,7 +20,7 @@ class _ExploreState extends State<Explore> {
 }
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -30,6 +30,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Pet> pets = [];
   bool isLoading = true;
   String searchQuery = '';
+  String selectedType = 'All';
 
   @override
   void initState() {
@@ -61,12 +62,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   List<Pet> getFilteredPets() {
-    if (searchQuery.isEmpty) return pets;
     return pets.where((pet) {
       final query = searchQuery.toLowerCase();
-      return pet.name.toLowerCase().contains(query) ||
+      final matchesSearch =
+          pet.name.toLowerCase().contains(query) ||
           pet.breed.toLowerCase().contains(query) ||
           pet.location.toLowerCase().contains(query);
+      final matchesType = selectedType == 'All' || pet.type == selectedType;
+      return matchesSearch && matchesType;
     }).toList();
   }
 
@@ -116,9 +119,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: TextField(
-              onChanged: (value) {
-                setState(() => searchQuery = value);
-              },
+              onChanged: (value) => setState(() => searchQuery = value),
               decoration: InputDecoration(
                 hintText: 'Search',
                 prefixIcon: const Icon(Icons.search),
@@ -128,6 +129,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(20.0),
                   borderSide: BorderSide.none,
                 ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4),
+            child: SizedBox(
+              height: 80,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildTypeFilter('All', Icons.pets, Colors.grey),
+                  _buildTypeFilter('Dog', Icons.pets, Colors.teal),
+                  _buildTypeFilter('Cat', Icons.pets, Colors.amber),
+                  _buildTypeFilter('Rabbit', Icons.pets, Colors.green),
+                  _buildTypeFilter('Bird', Icons.pets, Colors.orange),
+                ],
               ),
             ),
           ),
@@ -168,8 +185,40 @@ class _HomeScreenState extends State<HomeScreen> {
             _loadPets();
           }
         },
-        child: const Icon(Icons.add),
         backgroundColor: Colors.teal,
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildTypeFilter(String type, IconData icon, Color color) {
+    final isSelected = selectedType == type;
+    return GestureDetector(
+      onTap: () => setState(() => selectedType = type),
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? color : Colors.grey[300],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.white : Colors.black,
+              size: 18,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              type,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -181,11 +230,11 @@ class PetCard extends StatelessWidget {
   final Function() onReturn;
 
   const PetCard({
-    Key? key,
+    super.key,
     required this.pet,
     required this.onPetUpdated,
     required this.onReturn,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -195,7 +244,6 @@ class PetCard extends StatelessWidget {
           context,
           MaterialPageRoute(builder: (context) => PetDetailScreen(pet: pet)),
         );
-
         if (updatedPet != null) {
           onPetUpdated(updatedPet);
         } else {
