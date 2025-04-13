@@ -31,6 +31,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = true;
   String searchQuery = '';
   String selectedType = 'All';
+  bool isSelectionMode = false;
+  Set<int> selectedPetIds = {};
 
   @override
   void initState() {
@@ -49,8 +51,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Future<void> _deleteAllPets() async {
-    await DatabaseHelper.instance.deleteAllPets();
+  void toggleSelectionMode() {
+    setState(() {
+      isSelectionMode = !isSelectionMode;
+      selectedPetIds.clear();
+    });
+  }
+
+  void togglePetSelection(int id) {
+    setState(() {
+      if (selectedPetIds.contains(id)) {
+        selectedPetIds.remove(id);
+      } else {
+        selectedPetIds.add(id);
+      }
+    });
+  }
+
+  Future<void> deleteSelectedPets() async {
+    for (var id in selectedPetIds) {
+      await DatabaseHelper.instance.deletePet(id);
+    }
+    toggleSelectionMode();
     _loadPets();
   }
 
@@ -79,39 +101,63 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Happy Paw', style: TextStyle(color: Colors.white)),
+        title: Text(
+          isSelectionMode
+              ? 'เลือก ${selectedPetIds.length} รายการ'
+              : 'Happy Paw',
+          style: const TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
         backgroundColor: Colors.teal,
+        leading:
+            isSelectionMode
+                ? IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: toggleSelectionMode,
+                )
+                : null,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_forever),
-            tooltip: 'ล้างข้อมูลทั้งหมด',
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('ลบข้อมูลทั้งหมด?'),
-                      content: const Text(
-                        'คุณแน่ใจหรือไม่ว่าต้องการลบสัตว์เลี้ยงทั้งหมด?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('ยกเลิก'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('ยืนยัน'),
-                        ),
-                      ],
-                    ),
-              );
-              if (confirm == true) {
-                await _deleteAllPets();
-              }
-            },
-          ),
+          if (isSelectionMode)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: 'ลบรายการที่เลือก',
+              onPressed:
+                  selectedPetIds.isEmpty
+                      ? null
+                      : () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder:
+                              (context) => AlertDialog(
+                                title: const Text('ยืนยันการลบ'),
+                                content: Text(
+                                  'ลบสัตว์ ${selectedPetIds.length} ตัวหรือไม่?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, false),
+                                    child: const Text('ยกเลิก'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, true),
+                                    child: const Text('ลบ'),
+                                  ),
+                                ],
+                              ),
+                        );
+                        if (confirm == true) {
+                          await deleteSelectedPets();
+                        }
+                      },
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.select_all),
+              tooltip: 'เลือกเพื่อลบ',
+              onPressed: toggleSelectionMode,
+            ),
         ],
       ),
       body: Column(
@@ -169,6 +215,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           pet: filteredPets[index],
                           onPetUpdated: updatePet,
                           onReturn: _loadPets,
+                          isSelectable: isSelectionMode,
+                          isSelected: selectedPetIds.contains(
+                            filteredPets[index].id,
+                          ),
+                          onToggleSelected: togglePetSelection,
                         );
                       },
                     ),
@@ -228,100 +279,137 @@ class PetCard extends StatelessWidget {
   final Pet pet;
   final Function(Pet) onPetUpdated;
   final Function() onReturn;
+  final bool isSelectable;
+  final bool isSelected;
+  final Function(int) onToggleSelected;
 
   const PetCard({
     super.key,
     required this.pet,
     required this.onPetUpdated,
     required this.onReturn,
+    required this.isSelectable,
+    required this.isSelected,
+    required this.onToggleSelected,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final updatedPet = await Navigator.push<Pet>(
-          context,
-          MaterialPageRoute(builder: (context) => PetDetailScreen(pet: pet)),
-        );
-        if (updatedPet != null) {
-          onPetUpdated(updatedPet);
-        } else {
-          onReturn();
-        }
-      },
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15.0),
-        ),
-        elevation: 3,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(15.0),
-                ),
-                child: _buildPetImage(),
+    return Stack(
+      children: [
+        GestureDetector(
+          onTap: () async {
+            final updatedPet = await Navigator.push<Pet>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => PetDetailScreen(pet: pet),
               ),
+            );
+            if (updatedPet != null) {
+              onPetUpdated(updatedPet);
+            } else {
+              onReturn();
+            }
+          },
+          child: Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${pet.name} (${pet.breed})',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+            color:
+                pet.ownerMessage.trim().isEmpty
+                    ? const Color.fromARGB(255, 252, 99, 122)
+                    : Colors.white,
+            shadowColor:
+                pet.ownerMessage.trim().isEmpty
+                    ? const Color.fromARGB(255, 243, 29, 29)
+                    : Colors.black12,
+            elevation: pet.ownerMessage.trim().isEmpty ? 6 : 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(15.0),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: _buildPetImage(),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        pet.gender.toLowerCase() == 'male'
-                            ? Icons.male
-                            : Icons.female,
-                        color:
-                            pet.gender.toLowerCase() == 'male'
-                                ? Colors.blue
-                                : Colors.pink,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          pet.location,
-                          style: const TextStyle(fontSize: 12),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      Text(
+                        '${pet.name} (${pet.breed})',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            pet.gender.toLowerCase() == 'male'
+                                ? Icons.male
+                                : Icons.female,
+                            color:
+                                pet.gender.toLowerCase() == 'male'
+                                    ? Colors.blue
+                                    : Colors.pink,
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              pet.location,
+                              style: const TextStyle(fontSize: 12),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          _buildTag(pet.age, Colors.teal, Colors.white),
+                          const SizedBox(width: 4),
+                          _buildTag(
+                            pet.weight,
+                            const Color(0xFFEAB816),
+                            Colors.black,
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      _buildTag(pet.age, Colors.teal, Colors.white),
-                      const SizedBox(width: 4),
-                      _buildTag(
-                        pet.weight,
-                        const Color(0xFFEAB816),
-                        Colors.black,
-                      ),
-                    ],
-                  ),
-                ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isSelectable)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: GestureDetector(
+              onTap: () => onToggleSelected(pet.id!),
+              child: CircleAvatar(
+                radius: 12,
+                backgroundColor: Colors.white,
+                child: Icon(
+                  isSelected ? Icons.check_circle : Icons.circle_outlined,
+                  color: isSelected ? Colors.teal : Colors.grey,
+                  size: 20,
+                ),
               ),
             ),
-          ],
-        ),
-      ),
+          ),
+      ],
     );
   }
 
@@ -341,12 +429,6 @@ class PetCard extends StatelessWidget {
       'assets/images/pet_placeholder.png',
       fit: BoxFit.cover,
       width: double.infinity,
-      errorBuilder: (context, error, stackTrace) {
-        return Container(
-          color: Colors.grey[300],
-          child: const Center(child: Icon(Icons.pets, color: Colors.grey)),
-        );
-      },
     );
   }
 

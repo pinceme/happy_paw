@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'package:happy_paw/model/pet.dart';
 import 'package:happy_paw/model/auth_service.dart';
-import 'favorite_list.dart'; // ✅ ตัวแปรเก็บรายการโปรด
+import 'favorite_list.dart';
 
 class PetDetailScreen extends StatefulWidget {
   final Pet pet;
@@ -13,19 +15,25 @@ class PetDetailScreen extends StatefulWidget {
 }
 
 class _PetDetailScreenState extends State<PetDetailScreen> {
-  // เพิ่มตัวแปรสำหรับเก็บข้อมูลผู้ใช้
   final AuthService _authService = AuthService();
   String username = '';
   String? profilePicturePath;
   bool isUserLoading = true;
 
+  String? dogFact;
+  bool isFactLoading = false;
+
+  String? catFact;
+  bool isCatFactLoading = false;
+
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    fetchDogFact();
+    fetchCatFact();
   }
-  
-  // เพิ่มเมธอดสำหรับโหลดข้อมูลผู้ใช้
+
   Future<void> _loadUserData() async {
     try {
       final currentUser = await _authService.getLoggedInUser();
@@ -40,6 +48,56 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
       print('Error loading user data: $e');
       setState(() {
         isUserLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchDogFact() async {
+    setState(() => isFactLoading = true);
+    try {
+      final response = await http.get(
+        Uri.parse('https://dogapi.dog/api/v1/facts?number=1'),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          dogFact = data['facts'][0];
+          isFactLoading = false;
+        });
+      } else {
+        setState(() {
+          dogFact = 'ไม่สามารถโหลดข้อมูลได้';
+          isFactLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        dogFact = 'เกิดข้อผิดพลาดในการโหลดข้อมูล';
+        isFactLoading = false;
+      });
+    }
+  }
+
+  Future<void> fetchCatFact() async {
+    setState(() => isCatFactLoading = true);
+    try {
+      final response = await http.get(Uri.parse('https://catfact.ninja/fact'));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        setState(() {
+          catFact = data['fact'];
+          isCatFactLoading = false;
+        });
+      } else {
+        setState(() {
+          catFact = 'ไม่สามารถโหลดข้อมูลแมวได้';
+          isCatFactLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        catFact = 'เกิดข้อผิดพลาดในการโหลดข้อมูลแมว';
+        isCatFactLoading = false;
       });
     }
   }
@@ -68,12 +126,26 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.file(
-                File(widget.pet.imagePath),
-                height: 280,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
+              child:
+                  widget.pet.imagePath.contains('assets/')
+                      ? Image.asset(
+                        widget.pet.imagePath,
+                        height: 280,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                      : Image.file(
+                        File(widget.pet.imagePath),
+                        height: 280,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Icon(
+                            Icons.image_not_supported,
+                            size: 100,
+                          );
+                        },
+                      ),
             ),
             const SizedBox(height: 16),
             Row(
@@ -137,8 +209,6 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 ],
               ),
             const SizedBox(height: 24),
-
-            // ✅ ข้อมูลเจ้าของ (เปลี่ยนมาใช้ข้อมูลผู้ใช้ที่ล็อกอิน)
             Container(
               decoration: BoxDecoration(
                 color:
@@ -157,24 +227,26 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // แสดงรูปโปรไฟล์ผู้ใช้แทน Icon
                   isUserLoading
                       ? const CircleAvatar(
-                          backgroundColor: Colors.teal,
-                          child: Icon(Icons.person, color: Colors.white),
-                        )
+                        backgroundColor: Colors.teal,
+                        child: Icon(Icons.person, color: Colors.white),
+                      )
                       : CircleAvatar(
-                          radius: 20,
-                          backgroundImage: profilePicturePath != null
-                              ? FileImage(File(profilePicturePath!))
-                              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
-                        ),
+                        radius: 20,
+                        backgroundImage:
+                            profilePicturePath != null
+                                ? FileImage(File(profilePicturePath!))
+                                : const AssetImage(
+                                      'assets/images/default_profile.png',
+                                    )
+                                    as ImageProvider,
+                      ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // แสดงชื่อผู้ใช้ที่ล็อกอินแทน widget.pet.ownerName
                         Text(
                           isUserLoading ? widget.pet.ownerName : username,
                           style: const TextStyle(
@@ -183,7 +255,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text('Chat: ${widget.pet.contactChat}'),
+                        Text('Line ID: ${widget.pet.contactChat}'),
                         Text('Phone: ${widget.pet.contactPhone}'),
                         const SizedBox(height: 10),
                         if (!isMissing && widget.pet.ownerMessage.isNotEmpty)
@@ -207,6 +279,105 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 ],
               ),
             ),
+            const SizedBox(height: 30),
+            if (widget.pet.type.toLowerCase() == 'dog') ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.yellow[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.amber.withOpacity(0.3),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.pets, color: Colors.brown),
+                        SizedBox(width: 8),
+                        Text(
+                          'Did you know? 🐶',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.brown,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    isFactLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Text(
+                          dogFact ?? 'ไม่มีข้อมูล',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.black87,
+                            height: 1.4,
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+            ],
+            if (widget.pet.type.toLowerCase() == 'cat') ...[
+              const SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.purple[50],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.purple, width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.purple.withOpacity(0.2),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: const [
+                        Icon(Icons.pets, color: Colors.purple),
+                        SizedBox(width: 8),
+                        Text(
+                          'Did you know? 🐱',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    isCatFactLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : Text(
+                          catFact ?? 'ไม่มีข้อมูล',
+                          style: const TextStyle(
+                            fontSize: 15,
+                            color: Colors.black87,
+                            height: 1.4,
+                          ),
+                        ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ),
       ),

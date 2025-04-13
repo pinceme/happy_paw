@@ -75,7 +75,8 @@ flutter:
     - assets/images/dogd1.png
     - assets/images/profile.png
     - assets/images/logo.png
-
+    - assets/images/ex_cat.jpg
+    - assets/images/default_profile.jpg
 
 
 

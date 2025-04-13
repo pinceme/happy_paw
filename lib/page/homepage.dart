@@ -1,12 +1,10 @@
-import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'detail.dart';
 import 'explore.dart';
 import 'package:happy_paw/model/petdatabasehelper.dart';
 import 'package:happy_paw/model/pet.dart';
 import 'package:happy_paw/model/auth_service.dart';
-import 'dart:io';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -25,24 +23,47 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  get pet => null;
   List<Pet> missingPets = [];
   bool isLoading = true;
-  
-  // เพิ่มตัวแปรสำหรับเก็บข้อมูลผู้ใช้
+
   final AuthService _authService = AuthService();
   String username = '';
   String? profilePicturePath;
   bool isUserLoading = true;
+
+  bool isSelectionMode = false;
+  Set<int> selectedPetIds = {};
+
+  void _addSamplePet() {
+    final samplePet = Pet(
+      name: 'Mimi',
+      type: 'Cat',
+      breed: 'Scottish Fold',
+      gender: 'Female',
+      age: '2 years',
+      weight: '3.8 kg',
+      location: 'Bangkok',
+      about: 'หายจากบ้านเมื่อวันที่ 3 เม.ย. น้องใส่ปลอกคอชมพู',
+      imagePath: 'assets/images/ex_cat.jpg',
+      ownerName: 'คุณแป้ง',
+      ownerMessage: '',
+      contactChat: 'pang_lostcat',
+      contactPhone: '091-111-2233',
+    );
+
+    setState(() {
+      missingPets.insert(0, samplePet);
+    });
+  }
 
   @override
   void initState() {
     super.initState();
     _loadMissingPets();
     _loadUserData();
+    _addSamplePet();
   }
-  
-  // เพิ่มเมธอดสำหรับโหลดข้อมูลผู้ใช้
+
   Future<void> _loadUserData() async {
     try {
       final currentUser = await _authService.getLoggedInUser();
@@ -69,54 +90,82 @@ class _HomepageState extends State<Homepage> {
     });
   }
 
-  Future<void> _deleteMissingPets() async {
-    final allPets = await DatabaseHelper.instance.getAllPets();
-    final missing = allPets.where((pet) => pet.ownerMessage.isEmpty).toList();
-    for (final pet in missing) {
-      if (pet.id != null) {
-        await DatabaseHelper.instance.deletePet(pet.id!);
-      }
-    }
-    _loadMissingPets();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.teal,
-        title: const Text('Happy Paw', style: TextStyle(color: Colors.white)),
+        title: Text(
+          isSelectionMode
+              ? 'เลือก ${selectedPetIds.length} รายการ'
+              : 'Happy Paw',
+          style: const TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
+        leading:
+            isSelectionMode
+                ? IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () {
+                    setState(() {
+                      isSelectionMode = false;
+                      selectedPetIds.clear();
+                    });
+                  },
+                )
+                : null,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.delete_forever),
-            tooltip: 'ลบข้อมูลสัตว์หายทั้งหมด',
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder:
-                    (context) => AlertDialog(
-                      title: const Text('ลบสัตว์หายทั้งหมด?'),
-                      content: const Text(
-                        'คุณแน่ใจหรือไม่ว่าต้องการลบสัตว์หายทั้งหมด?',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context, false),
-                          child: const Text('ยกเลิก'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pop(context, true),
-                          child: const Text('ยืนยัน'),
-                        ),
-                      ],
-                    ),
-              );
-              if (confirm == true) {
-                await _deleteMissingPets();
-              }
-            },
-          ),
+          isSelectionMode
+              ? IconButton(
+                icon: const Icon(Icons.delete),
+                tooltip: 'ลบที่เลือก',
+                onPressed:
+                    selectedPetIds.isEmpty
+                        ? null
+                        : () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder:
+                                (context) => AlertDialog(
+                                  title: const Text('ลบสัตว์ที่เลือก?'),
+                                  content: Text(
+                                    'คุณแน่ใจหรือไม่ว่าต้องการลบ ${selectedPetIds.length} รายการ?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, false),
+                                      child: const Text('ยกเลิก'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed:
+                                          () => Navigator.pop(context, true),
+                                      child: const Text('ยืนยัน'),
+                                    ),
+                                  ],
+                                ),
+                          );
+                          if (confirm == true) {
+                            for (final id in selectedPetIds) {
+                              await DatabaseHelper.instance.deletePet(id);
+                            }
+                            selectedPetIds.clear();
+                            setState(() {
+                              isSelectionMode = false;
+                            });
+                            _loadMissingPets();
+                          }
+                        },
+              )
+              : IconButton(
+                icon: const Icon(Icons.select_all),
+                tooltip: 'เลือกเพื่อลบ',
+                onPressed: () {
+                  setState(() {
+                    isSelectionMode = true;
+                  });
+                },
+              ),
         ],
       ),
       body: SingleChildScrollView(
@@ -126,23 +175,25 @@ class _HomepageState extends State<Homepage> {
           children: [
             Row(
               children: [
-                // แสดงชื่อผู้ใช้แทน Mark
                 Text(
                   isUserLoading ? 'Hello, User 👋' : 'Hello, $username 👋',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const Spacer(),
-                // แสดง CircleAvatar จากโปรไฟล์ผู้ใช้
                 isUserLoading
                     ? const CircleAvatar(
-                        backgroundColor: Colors.grey,
-                        child: Icon(Icons.person, color: Colors.white),
-                      )
+                      backgroundColor: Colors.grey,
+                      child: Icon(Icons.person, color: Colors.white),
+                    )
                     : CircleAvatar(
-                        backgroundImage: profilePicturePath != null
-                            ? FileImage(File(profilePicturePath!))
-                            : const AssetImage('assets/images/default_profile.png') as ImageProvider,
-                      ),
+                      backgroundImage:
+                          profilePicturePath != null
+                              ? FileImage(File(profilePicturePath!))
+                              : const AssetImage('') as ImageProvider,
+                    ),
               ],
             ),
             const SizedBox(height: 10),
@@ -166,7 +217,7 @@ class _HomepageState extends State<Homepage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => Explore()),
+                  MaterialPageRoute(builder: (context) => const Explore()),
                 );
               },
               child: Row(
@@ -180,7 +231,6 @@ class _HomepageState extends State<Homepage> {
               ),
             ),
             const SizedBox(height: 30),
-
             const Text(
               'สัตว์เลี้ยงที่หายไป',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -193,130 +243,136 @@ class _HomepageState extends State<Homepage> {
                 : Column(
                   children:
                       missingPets.map((pet) {
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => PetDetailScreen(pet: pet),
-                              ),
-                            );
-                          },
-                          child: Card(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            margin: const EdgeInsets.only(bottom: 20),
-                            child: Column(
-                              children: [
-                                ClipRRect(
+                        return Stack(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                if (isSelectionMode) {
+                                  final id = pet.id;
+                                  if (id != null) {
+                                    setState(() {
+                                      selectedPetIds.contains(id)
+                                          ? selectedPetIds.remove(id)
+                                          : selectedPetIds.add(id);
+                                    });
+                                  }
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) =>
+                                              PetDetailScreen(pet: pet),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Card(
+                                shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
-                                  child: Image.file(
-                                    File(pet.imagePath),
-                                    height: 250,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return const Icon(
-                                        Icons.image_not_supported,
-                                      );
-                                    },
-                                  ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        pet.name,
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                margin: const EdgeInsets.only(bottom: 20),
+                                color:
+                                    pet.ownerMessage.trim().isEmpty
+                                        ? const Color.fromARGB(
+                                          255,
+                                          252,
+                                          99,
+                                          122,
+                                        )
+                                        : Colors.white,
+                                elevation: 4,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(10),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Row(
+                                      child:
+                                          pet.imagePath.contains('assets/')
+                                              ? Image.asset(
+                                                pet.imagePath,
+                                                height: 250,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              )
+                                              : Image.file(
+                                                File(pet.imagePath),
+                                                height: 250,
+                                                width: double.infinity,
+                                                fit: BoxFit.cover,
+                                              ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          const Icon(
-                                            Icons.location_on,
-                                            color: Colors.red,
-                                            size: 16,
-                                          ),
-                                          const SizedBox(width: 5),
                                           Text(
-                                            pet.location,
+                                            pet.name,
                                             style: const TextStyle(
-                                              fontSize: 14,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
                                             ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.location_on,
+                                                color: Colors.red,
+                                                size: 16,
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                pet.location,
+                                                style: const TextStyle(
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),
-                                    ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            if (isSelectionMode && pet.id != null)
+                              Positioned(
+                                top: 8,
+                                right: 8,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      selectedPetIds.contains(pet.id!)
+                                          ? selectedPetIds.remove(pet.id!)
+                                          : selectedPetIds.add(pet.id!);
+                                    });
+                                  },
+                                  child: CircleAvatar(
+                                    radius: 12,
+                                    backgroundColor: Colors.white,
+                                    child: Icon(
+                                      selectedPetIds.contains(pet.id!)
+                                          ? Icons.check_circle
+                                          : Icons.circle_outlined,
+                                      color:
+                                          selectedPetIds.contains(pet.id!)
+                                              ? Colors.teal
+                                              : Colors.grey,
+                                      size: 20,
+                                    ),
                                   ),
                                 ),
-                              ],
-                            ),
-                          ),
+                              ),
+                          ],
                         );
                       }).toList(),
                 ),
-
-            const SizedBox(height: 30),
-            GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => PetDetailScreen(pet: pet),
-                  ),
-                );
-              },
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.asset(
-                        'assets/images/cat.jpg',
-                        height: 250,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return const Text('Error loading image');
-                        },
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.all(8.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Berito',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              Icon(Icons.male, color: Colors.red),
-                              SizedBox(width: 5),
-                              Text('Nakornpathom (Current location)'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),

@@ -42,8 +42,8 @@ class _AddPetScreenState extends State<AddPetScreen> {
     super.initState();
     _ownerNameController.text = defaultOwnerName;
     _ownerMessageController.text = defaultOwnerMessage;
-    _contactChatController.text = "DragonG";
-    _contactPhoneController.text = "093-123-1234";
+    _contactChatController.text = "";
+    _contactPhoneController.text = "";
   }
 
   Future<void> _pickImage() async {
@@ -119,8 +119,11 @@ class _AddPetScreenState extends State<AddPetScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Happy Paw', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
+        title: const Text(
+          'หาบ้านให้สัตว์เลี้ยง',
+          style: TextStyle(color: Colors.white),
+        ),
+
         backgroundColor: Colors.teal,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -265,7 +268,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
                   children: [
                     Expanded(
                       child: _buildTextField(
-                        label: 'Chat Username',
+                        label: 'Line ID',
                         controller: _contactChatController,
                         icon: Icons.chat,
                       ),

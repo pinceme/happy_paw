@@ -36,9 +36,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         isLoading = true;
       });
-      
+
       final currentUser = await _authService.getLoggedInUser();
-      
+
       if (currentUser != null) {
         setState(() {
           userId = currentUser.id;
@@ -55,9 +55,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load profile data')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to load profile data')));
     }
   }
 
@@ -78,26 +78,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (pickedFile != null) {
         // บันทึกรูปภาพลงในพื้นที่เก็บข้อมูลของแอป
         final Directory appDir = await getApplicationDocumentsDirectory();
-        final String fileName = 'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final String fileName =
+            'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final String filePath = path.join(appDir.path, fileName);
-        
+
         // คัดลอกไฟล์ไปยังพื้นที่เก็บข้อมูลของแอป
         final File newImage = await File(pickedFile.path).copy(filePath);
-        
+
         // อัปเดตโปรไฟล์ในฐานข้อมูล
         if (userId != null) {
           final success = await _authService.updateProfile(
             userId: userId!,
             profilePicture: filePath,
           );
-          
+
           if (success) {
             setState(() {
               profilePicturePath = filePath;
             });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Profile picture updated')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Profile picture updated')));
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Failed to update profile picture')),
@@ -107,12 +108,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (e) {
       print('Error picking image: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to pick image')));
     }
   }
-  
+
   void _showImagePickerOptions() {
     showModalBottomSheet(
       context: context,
@@ -149,9 +150,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (result) {
         _navigateToLogin();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Logout failed')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Logout failed')));
       }
     } catch (e) {
       print('Error during logout: $e');
@@ -171,108 +172,115 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
       ),
       backgroundColor: Colors.white,
-      body: isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.teal))
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(30),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(height: 10),
-                  Text(
-                    'Profile',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.teal,
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator(color: Colors.teal))
+              : SingleChildScrollView(
+                padding: const EdgeInsets.all(30),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(height: 10),
+                    Text(
+                      'Profile',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.teal,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20),
-                  
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-                    decoration: BoxDecoration(
-                      color: Colors.teal, 
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      children: [
-                        GestureDetector(
-                          onTap: _showImagePickerOptions,
-                          child: Stack(
-                            alignment: Alignment.bottomRight,
-                            children: [
-                              Container(
-                                width: 60,
-                                height: 60,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
+                    SizedBox(height: 20),
+
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(
+                        vertical: 15,
+                        horizontal: 20,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.teal,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        children: [
+                          GestureDetector(
+                            onTap: _showImagePickerOptions,
+                            child: Stack(
+                              alignment: Alignment.bottomRight,
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 2,
+                                    ),
+                                    image:
+                                        profilePicturePath != null
+                                            ? DecorationImage(
+                                              image: FileImage(
+                                                File(profilePicturePath!),
+                                              ),
+                                              fit: BoxFit.cover,
+                                            )
+                                            : DecorationImage(
+                                              image: AssetImage(''),
+                                              fit: BoxFit.cover,
+                                            ),
                                   ),
-                                  image: profilePicturePath != null
-                                      ? DecorationImage(
-                                          image: FileImage(File(profilePicturePath!)),
-                                          fit: BoxFit.cover,
-                                        )
-                                      : DecorationImage(
-                                          image: AssetImage('assets/images/default_profile.png'),
-                                          fit: BoxFit.cover,
-                                        ),
                                 ),
-                              ),
-                              Container(
-                                padding: EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
+                                Container(
+                                  padding: EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.teal,
+                                    size: 12,
+                                  ),
                                 ),
-                                child: Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.teal,
-                                  size: 12,
-                                ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 15),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                username,
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFF6D173), 
+                          SizedBox(width: 15),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  username,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFF6D173),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                email,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFFF6D173), 
+                                SizedBox(height: 2),
+                                Text(
+                                  email,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFFF6D173),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 30),
-                  _buildMenuSection(),
-                ],
+                    SizedBox(height: 30),
+                    _buildMenuSection(),
+                  ],
+                ),
               ),
-            ),
     );
   }
 
@@ -282,14 +290,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: BoxDecoration(
         color: Colors.amber,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          
-        ],
+        boxShadow: [],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          
           SizedBox(height: 15),
           buildMenuButton(Icons.pets, 'Add new pet', () {
             Navigator.push(
