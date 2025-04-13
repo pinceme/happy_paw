@@ -205,8 +205,9 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
                   children: [
                     Expanded(
                       child: _buildTextField(
-                        label: 'Chat Username',
+                        label: 'Line ID',
                         controller: _contactChatController,
+                        icon: Icons.chat,
                       ),
                     ),
                     const SizedBox(width: 16),

@@ -37,7 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           password: password,
         );
 
-        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        // ตรวจสอบการ mount ของ widget เพื่fอป้องกัน setState หลังจาก dispose
         if (!mounted) return;
         
         setState(() {
