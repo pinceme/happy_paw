@@ -5,6 +5,7 @@ import 'detail.dart';
 import 'explore.dart';
 import 'package:happy_paw/model/petdatabasehelper.dart';
 import 'package:happy_paw/model/pet.dart';
+import 'package:happy_paw/model/auth_service.dart';
 import 'dart:io';
 
 class MyApp extends StatelessWidget {
@@ -27,11 +28,37 @@ class _HomepageState extends State<Homepage> {
   get pet => null;
   List<Pet> missingPets = [];
   bool isLoading = true;
+  
+  // เพิ่มตัวแปรสำหรับเก็บข้อมูลผู้ใช้
+  final AuthService _authService = AuthService();
+  String username = '';
+  String? profilePicturePath;
+  bool isUserLoading = true;
 
   @override
   void initState() {
     super.initState();
     _loadMissingPets();
+    _loadUserData();
+  }
+  
+  // เพิ่มเมธอดสำหรับโหลดข้อมูลผู้ใช้
+  Future<void> _loadUserData() async {
+    try {
+      final currentUser = await _authService.getLoggedInUser();
+      if (currentUser != null) {
+        setState(() {
+          username = currentUser.username;
+          profilePicturePath = currentUser.profilePicture;
+          isUserLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+      setState(() {
+        isUserLoading = false;
+      });
+    }
   }
 
   Future<void> _loadMissingPets() async {
@@ -99,16 +126,23 @@ class _HomepageState extends State<Homepage> {
           children: [
             Row(
               children: [
-                const Text(
-                  'Hello, Mark 👋',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // แสดงชื่อผู้ใช้แทน Mark
+                Text(
+                  isUserLoading ? 'Hello, User 👋' : 'Hello, $username 👋',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
-                const CircleAvatar(
-                  backgroundImage: NetworkImage(
-                    'https://www.example.com/profile.jpg',
-                  ),
-                ),
+                // แสดง CircleAvatar จากโปรไฟล์ผู้ใช้
+                isUserLoading
+                    ? const CircleAvatar(
+                        backgroundColor: Colors.grey,
+                        child: Icon(Icons.person, color: Colors.white),
+                      )
+                    : CircleAvatar(
+                        backgroundImage: profilePicturePath != null
+                            ? FileImage(File(profilePicturePath!))
+                            : const AssetImage('assets/images/default_profile.png') as ImageProvider,
+                      ),
               ],
             ),
             const SizedBox(height: 10),

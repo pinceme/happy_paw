@@ -1,15 +1,52 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:happy_paw/model/pet.dart';
+import 'package:happy_paw/model/auth_service.dart';
 import 'favorite_list.dart'; // ✅ ตัวแปรเก็บรายการโปรด
 
-class PetDetailScreen extends StatelessWidget {
+class PetDetailScreen extends StatefulWidget {
   final Pet pet;
   const PetDetailScreen({super.key, required this.pet});
 
   @override
+  State<PetDetailScreen> createState() => _PetDetailScreenState();
+}
+
+class _PetDetailScreenState extends State<PetDetailScreen> {
+  // เพิ่มตัวแปรสำหรับเก็บข้อมูลผู้ใช้
+  final AuthService _authService = AuthService();
+  String username = '';
+  String? profilePicturePath;
+  bool isUserLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+  
+  // เพิ่มเมธอดสำหรับโหลดข้อมูลผู้ใช้
+  Future<void> _loadUserData() async {
+    try {
+      final currentUser = await _authService.getLoggedInUser();
+      if (currentUser != null) {
+        setState(() {
+          username = currentUser.username;
+          profilePicturePath = currentUser.profilePicture;
+          isUserLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error loading user data: $e');
+      setState(() {
+        isUserLoading = false;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final isMissing = pet.ownerMessage.trim().isEmpty;
+    final isMissing = widget.pet.ownerMessage.trim().isEmpty;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,7 +69,7 @@ class PetDetailScreen extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: Image.file(
-                File(pet.imagePath),
+                File(widget.pet.imagePath),
                 height: 280,
                 width: double.infinity,
                 fit: BoxFit.cover,
@@ -47,14 +84,14 @@ class PetDetailScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        pet.name,
+                        widget.pet.name,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        pet.breed,
+                        widget.pet.breed,
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -63,7 +100,7 @@ class PetDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-                FavoriteButton(pet: pet),
+                FavoriteButton(pet: widget.pet),
               ],
             ),
             const SizedBox(height: 8),
@@ -74,20 +111,20 @@ class PetDetailScreen extends StatelessWidget {
                   color: isMissing ? Colors.red : Colors.teal,
                 ),
                 const SizedBox(width: 6),
-                Text(pet.location),
+                Text(widget.pet.location),
               ],
             ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
               children: [
-                _infoTag(pet.age, isMissing),
-                _infoTag(pet.gender, isMissing),
-                _infoTag('${pet.weight} kg', isMissing),
+                _infoTag(widget.pet.age, isMissing),
+                _infoTag(widget.pet.gender, isMissing),
+                _infoTag('${widget.pet.weight} kg', isMissing),
               ],
             ),
             const SizedBox(height: 20),
-            if (pet.about.isNotEmpty)
+            if (widget.pet.about.isNotEmpty)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -96,12 +133,12 @@ class PetDetailScreen extends StatelessWidget {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  Text(pet.about),
+                  Text(widget.pet.about),
                 ],
               ),
             const SizedBox(height: 24),
 
-            // ✅ ข้อมูลเจ้าของ
+            // ✅ ข้อมูลเจ้าของ (เปลี่ยนมาใช้ข้อมูลผู้ใช้ที่ล็อกอิน)
             Container(
               decoration: BoxDecoration(
                 color:
@@ -120,24 +157,36 @@ class PetDetailScreen extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.person, color: Colors.teal),
+                  // แสดงรูปโปรไฟล์ผู้ใช้แทน Icon
+                  isUserLoading
+                      ? const CircleAvatar(
+                          backgroundColor: Colors.teal,
+                          child: Icon(Icons.person, color: Colors.white),
+                        )
+                      : CircleAvatar(
+                          radius: 20,
+                          backgroundImage: profilePicturePath != null
+                              ? FileImage(File(profilePicturePath!))
+                              : const AssetImage('assets/images/default_profile.png') as ImageProvider,
+                        ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // แสดงชื่อผู้ใช้ที่ล็อกอินแทน widget.pet.ownerName
                         Text(
-                          pet.ownerName,
+                          isUserLoading ? widget.pet.ownerName : username,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
                         ),
                         const SizedBox(height: 4),
-                        Text('Chat: ${pet.contactChat}'),
-                        Text('Phone: ${pet.contactPhone}'),
+                        Text('Chat: ${widget.pet.contactChat}'),
+                        Text('Phone: ${widget.pet.contactPhone}'),
                         const SizedBox(height: 10),
-                        if (!isMissing && pet.ownerMessage.isNotEmpty)
+                        if (!isMissing && widget.pet.ownerMessage.isNotEmpty)
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -145,7 +194,7 @@ class PetDetailScreen extends StatelessWidget {
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
-                              pet.ownerMessage,
+                              widget.pet.ownerMessage,
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.black,
