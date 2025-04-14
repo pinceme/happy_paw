@@ -6,15 +6,6 @@ import 'package:happy_paw/model/petdatabasehelper.dart';
 import 'package:happy_paw/model/pet.dart';
 import 'package:happy_paw/model/auth_service.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(debugShowCheckedModeBanner: false, home: Homepage());
-  }
-}
-
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
 
@@ -26,6 +17,9 @@ class _HomepageState extends State<Homepage> {
   List<Pet> missingPets = [];
   bool isLoading = true;
 
+  String searchQuery = '';
+  String selectedType = 'All';
+
   final AuthService _authService = AuthService();
   String username = '';
   String? profilePicturePath;
@@ -33,28 +27,6 @@ class _HomepageState extends State<Homepage> {
 
   bool isSelectionMode = false;
   Set<int> selectedPetIds = {};
-
-  void _addSamplePet() {
-    final samplePet = Pet(
-      name: 'Mimi',
-      type: 'Cat',
-      breed: 'Scottish Fold',
-      gender: 'Female',
-      age: '2 years',
-      weight: '3.8 kg',
-      location: 'Bangkok',
-      about: 'หายจากบ้านเมื่อวันที่ 3 เม.ย. น้องใส่ปลอกคอชมพู',
-      imagePath: 'assets/images/ex_cat.jpg',
-      ownerName: 'คุณแป้ง',
-      ownerMessage: '',
-      contactChat: 'pang_lostcat',
-      contactPhone: '091-111-2233',
-    );
-
-    setState(() {
-      missingPets.insert(0, samplePet);
-    });
-  }
 
   @override
   void initState() {
@@ -88,6 +60,37 @@ class _HomepageState extends State<Homepage> {
       missingPets = allPets.where((pet) => pet.ownerMessage.isEmpty).toList();
       isLoading = false;
     });
+  }
+
+  void _addSamplePet() {
+    final samplePet = Pet(
+      name: 'Mimi',
+      type: 'Cat',
+      breed: 'Scottish Fold',
+      gender: 'Female',
+      age: '2 years',
+      weight: '3.8 kg',
+      location: 'Bangkok',
+      about: 'หายจากบ้านเมื่อวันที่ 3 เม.ย. น้องใส่ปลอกคอชมพู',
+      imagePath: 'assets/images/ex_cat.jpg',
+      ownerName: 'คุณแป้ง',
+      ownerMessage: '',
+      contactChat: 'pang_lostcat',
+      contactPhone: '091-111-2233',
+    );
+
+    setState(() {
+      missingPets.insert(0, samplePet);
+    });
+  }
+
+  List<Pet> getFilteredPets() {
+    return missingPets.where((pet) {
+      final query = searchQuery.toLowerCase();
+      final matchesSearch = pet.location.toLowerCase().contains(query);
+      final matchesType = selectedType == 'All' || pet.type == selectedType;
+      return matchesSearch && matchesType;
+    }).toList();
   }
 
   @override
@@ -192,7 +195,10 @@ class _HomepageState extends State<Homepage> {
                       backgroundImage:
                           profilePicturePath != null
                               ? FileImage(File(profilePicturePath!))
-                              : const AssetImage('') as ImageProvider,
+                              : const AssetImage(
+                                    'assets/images/default_profile.png',
+                                  )
+                                  as ImageProvider,
                     ),
               ],
             ),
@@ -200,8 +206,9 @@ class _HomepageState extends State<Homepage> {
             const Text('What are you looking for today?'),
             const SizedBox(height: 10),
             TextField(
+              onChanged: (value) => setState(() => searchQuery = value),
               decoration: InputDecoration(
-                hintText: 'Search',
+                hintText: 'Search breed...',
                 hintStyle: const TextStyle(color: Colors.black),
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
@@ -238,11 +245,11 @@ class _HomepageState extends State<Homepage> {
             const SizedBox(height: 10),
             isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : missingPets.isEmpty
+                : getFilteredPets().isEmpty
                 ? const Text('ไม่พบข้อมูลสัตว์เลี้ยงที่หาย')
                 : Column(
                   children:
-                      missingPets.map((pet) {
+                      getFilteredPets().map((pet) {
                         return Stack(
                           children: [
                             GestureDetector(
@@ -272,15 +279,7 @@ class _HomepageState extends State<Homepage> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 margin: const EdgeInsets.only(bottom: 20),
-                                color:
-                                    pet.ownerMessage.trim().isEmpty
-                                        ? const Color.fromARGB(
-                                          255,
-                                          252,
-                                          99,
-                                          122,
-                                        )
-                                        : Colors.white,
+                                color: const Color.fromARGB(255, 252, 99, 122),
                                 elevation: 4,
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,8 +392,4 @@ class _HomepageState extends State<Homepage> {
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MyApp());
 }

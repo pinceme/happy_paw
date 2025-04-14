@@ -192,7 +192,10 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
               children: [
                 _infoTag(widget.pet.age, isMissing),
                 _infoTag(widget.pet.gender, isMissing),
-                _infoTag('${widget.pet.weight} kg', isMissing),
+                _infoTag(
+                  '${widget.pet.weight.contains("kg") ? widget.pet.weight : "${widget.pet.weight} kg"}',
+                  isMissing,
+                ),
               ],
             ),
             const SizedBox(height: 20),
@@ -201,7 +204,7 @@ class _PetDetailScreenState extends State<PetDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'ข้อมูลเพิ่มเติม',
+                    'ลักษณะสัตว์เลี้ยง',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -425,9 +428,12 @@ class _FavoriteButtonState extends State<FavoriteButton> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          isFavorite ? 'นำออกจากรายการโปรดแล้ว' : 'เพิ่มในรายการโปรดแล้ว',
+          isFavorite ? 'เพิ่มในรายการโปรดแล้ว' : 'นำออกจากรายการโปรดแล้ว',
         ),
-        backgroundColor: isFavorite ? Colors.grey : Colors.green,
+        backgroundColor:
+            isFavorite
+                ? const Color.fromARGB(255, 230, 62, 113)
+                : const Color.fromARGB(255, 117, 119, 117),
         duration: const Duration(seconds: 1),
       ),
     );

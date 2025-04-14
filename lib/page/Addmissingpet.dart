@@ -129,21 +129,25 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
                         color: Colors.amber,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: _image != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(_image!, fit: BoxFit.cover),
-                            )
-                          : const Icon(
-                              Icons.pets,
-                              size: 60,
-                              color: Colors.black,
-                            ),
+                      child:
+                          _image != null
+                              ? ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: Image.file(_image!, fit: BoxFit.cover),
+                              )
+                              : const Icon(
+                                Icons.pets,
+                                size: 60,
+                                color: Colors.black,
+                              ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                _buildTextField(label: 'Pet Name*', controller: _nameController),
+                _buildTextField(
+                  label: 'Pet Name*',
+                  controller: _nameController,
+                ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
@@ -151,25 +155,42 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
                   ),
                   value: _selectedPetType,
-                  items: ['Dog', 'Cat', 'Rabbit', 'Bird']
-                      .map((type) => DropdownMenuItem(value: type, child: Text(type)))
-                      .toList(),
-                  onChanged: (value) => setState(() => _selectedPetType = value),
-                  validator: (value) => value == null ? 'Please select a pet type' : null,
+                  items:
+                      ['Dog', 'Cat', 'Rabbit', 'Bird']
+                          .map(
+                            (type) => DropdownMenuItem(
+                              value: type,
+                              child: Text(type),
+                            ),
+                          )
+                          .toList(),
+                  onChanged:
+                      (value) => setState(() => _selectedPetType = value),
+                  validator:
+                      (value) =>
+                          value == null ? 'Please select a pet type' : null,
                 ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildTextField(label: 'Breeds*', controller: _breedController),
+                      child: _buildTextField(
+                        label: 'Breeds*',
+                        controller: _breedController,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildTextField(label: 'Gender*', controller: _genderController),
+                      child: _buildTextField(
+                        label: 'Gender*',
+                        controller: _genderController,
+                      ),
                     ),
                   ],
                 ),
@@ -177,16 +198,25 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildTextField(label: 'Age*', controller: _ageController),
+                      child: _buildTextField(
+                        label: 'Age*',
+                        controller: _ageController,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildTextField(label: 'Weight*', controller: _weightController),
+                      child: _buildTextField(
+                        label: 'Weight*',
+                        controller: _weightController,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
-                _buildTextField(label: 'Current location*', controller: _locationController),
+                _buildTextField(
+                  label: 'Current location*',
+                  controller: _locationController,
+                ),
                 const SizedBox(height: 16),
                 _buildTextField(
                   label: 'About Pet (Personality, Special Needs, etc.)',
@@ -198,8 +228,6 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
                   'Owner Information',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 12),
-                _buildTextField(label: 'Owner Name*', controller: _ownerNameController),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -231,12 +259,18 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
                       ),
                     ),
                     onPressed: _isLoading ? null : _submitForm,
-                    child: _isLoading
-                        ? const CircularProgressIndicator(color: Colors.white)
-                        : const Text(
-                            'Submit',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                    child:
+                        _isLoading
+                            ? const CircularProgressIndicator(
+                              color: Colors.white,
+                            )
+                            : const Text(
+                              'Submit',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                   ),
                 ),
               ],
@@ -262,8 +296,10 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
           labelText: label,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           prefixIcon: icon != null ? Icon(icon) : null,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 14,
+            horizontal: 16,
+          ),
         ),
         validator: (value) {
           if (label.contains('*') && (value == null || value.isEmpty)) {

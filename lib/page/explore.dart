@@ -86,10 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Pet> getFilteredPets() {
     return pets.where((pet) {
       final query = searchQuery.toLowerCase();
-      final matchesSearch =
-          pet.name.toLowerCase().contains(query) ||
-          pet.breed.toLowerCase().contains(query) ||
-          pet.location.toLowerCase().contains(query);
+      final matchesSearch = pet.breed.toLowerCase().contains(query);
       final matchesType = selectedType == 'All' || pet.type == selectedType;
       return matchesSearch && matchesType;
     }).toList();

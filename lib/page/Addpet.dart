@@ -254,11 +254,6 @@ class _AddPetScreenState extends State<AddPetScreen> {
                 ),
                 const SizedBox(height: 12),
                 _buildTextField(
-                  label: 'Owner Name*',
-                  controller: _ownerNameController,
-                ),
-                const SizedBox(height: 12),
-                _buildTextField(
                   label: 'Owner Message',
                   controller: _ownerMessageController,
                   maxLines: 3,
