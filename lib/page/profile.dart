@@ -76,16 +76,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (pickedFile != null) {
-        // บันทึกรูปภาพลงในพื้นที่เก็บข้อมูลของแอป
+        
         final Directory appDir = await getApplicationDocumentsDirectory();
         final String fileName =
             'profile_${userId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final String filePath = path.join(appDir.path, fileName);
 
-        // คัดลอกไฟล์ไปยังพื้นที่เก็บข้อมูลของแอป
+        
         final File newImage = await File(pickedFile.path).copy(filePath);
 
-        // อัปเดตโปรไฟล์ในฐานข้อมูล
+        
         if (userId != null) {
           final success = await _authService.updateProfile(
             userId: userId!,
