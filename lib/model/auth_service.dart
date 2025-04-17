@@ -1,11 +1,11 @@
-// auth_service.dart
+
 import 'package:shared_preferences/shared_preferences.dart';
 import 'user_database_helper.dart';
 
 class AuthService {
   final UserDatabaseHelper _dbHelper = UserDatabaseHelper();
 
-  // เก็บ session ของผู้ใช้ที่ login
+
   Future<bool> saveUserSession(int userId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -16,7 +16,7 @@ class AuthService {
     }
   }
 
-  // ตรวจสอบว่ามีผู้ใช้ที่ login อยู่หรือไม่
+
   Future<int?> getLoggedInUserId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -27,7 +27,7 @@ class AuthService {
     }
   }
 
-  // ดึงข้อมูลผู้ใช้ที่ login อยู่
+  
   Future<User?> getLoggedInUser() async {
     try {
       final userId = await getLoggedInUserId();
@@ -42,7 +42,7 @@ class AuthService {
     }
   }
 
-  // ลงทะเบียนผู้ใช้ใหม่
+  
   Future<bool> signUp({
     required String username,
     required String email,
@@ -66,7 +66,7 @@ class AuthService {
     }
   }
 
-  // เข้าสู่ระบบ
+ 
   Future<User?> login(String usernameOrEmail, String password) async {
     try {
       final user = await _dbHelper.login(usernameOrEmail, password);
@@ -87,7 +87,7 @@ class AuthService {
     }
   }
 
-  // ออกจากระบบ
+
   Future<bool> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -98,7 +98,7 @@ class AuthService {
     }
   }
 
-  // อัปเดตโปรไฟล์
+  
   Future<bool> updateProfile({
     required int userId,
     String? fullName,
@@ -125,7 +125,7 @@ class AuthService {
     }
   }
 
-  // เปลี่ยนรหัสผ่าน
+  
   Future<bool> changePassword(
     int userId,
     String currentPassword,
@@ -144,6 +144,5 @@ class AuthService {
     }
   }
 
-  // ลบเมธอดที่ไม่ได้ใช้งาน
-  // userId() {} - ลบออกเนื่องจากไม่ได้ใช้งาน
+
 }

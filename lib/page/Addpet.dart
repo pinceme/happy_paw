@@ -104,7 +104,7 @@ class _AddPetScreenState extends State<AddPetScreen> {
         await DatabaseHelper.instance.insertPet(pet);
 
         if (!mounted) return;
-        Navigator.pop(context, true); // กลับไปพร้อมแจ้งว่าเพิ่มสำเร็จ
+        Navigator.pop(context, true); 
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('เกิดข้อผิดพลาดขณะบันทึกข้อมูล: $e')),

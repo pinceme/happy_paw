@@ -4,19 +4,19 @@ import 'pet.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
-  static Database? _database; // ✅ ถูกต้อง
+  static Database? _database; 
 
   DatabaseHelper._init();
 
   Future<Database> get database async {
-    // ✅ return Database
+    
     if (_database != null) return _database!;
     _database = await _initDB('happypaw.db');
     return _database!;
   }
 
   Future<Database> _initDB(String filePath) async {
-    // ✅ แก้ Pet → Database
+    
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
@@ -24,7 +24,7 @@ class DatabaseHelper {
   }
 
   Future _createDB(Database db, int version) async {
-    // ✅ แก้ Pet → Database
+    
     await db.execute('''
       CREATE TABLE pets(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,5 +68,5 @@ class DatabaseHelper {
 
   getPet(int id) {}
 
-  // ... อื่น ๆ (insertPet, getPet, updatePet, deletePet) ใส่ต่อได้
+  
 }

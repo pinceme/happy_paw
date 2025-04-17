@@ -16,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _isLoading = false; // เพิ่มตัวแปรสำหรับแสดงสถานะการโหลด
+  bool _isLoading = false; 
 
   final AuthService _authService = AuthService();
 
@@ -128,7 +128,7 @@ class _LoginScreenState extends State<LoginScreen> {
           obscureText: isPassword,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.amber[50], // ปรับให้อ่อนลงเพื่อให้เห็นข้อความชัดเจน
+            fillColor: Colors.amber[50], 
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
@@ -148,7 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _validateLogin() async {
     if (_formKey.currentState!.validate()) {
-      // แสดงสถานะกำลังโหลด
+      
       setState(() {
         _isLoading = true;
       });
@@ -160,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
         print('Attempting login with: $username');
         final user = await _authService.login(username, password);
         
-        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        
         if (!mounted) return;
         
         setState(() {
@@ -182,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
         }
       } catch (e) {
-        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        
         if (!mounted) return;
         
         setState(() {
@@ -191,7 +191,7 @@ class _LoginScreenState extends State<LoginScreen> {
         
         String errorMessage = 'Login failed';
         
-        // แสดงข้อความที่เฉพาะเจาะจงมากขึ้น
+        
         if (e.toString().contains('User not found')) {
           errorMessage = 'Username or email not found';
         } else if (e.toString().contains('Invalid password')) {

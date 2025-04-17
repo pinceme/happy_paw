@@ -60,7 +60,7 @@ class _AddMissingPetScreenState extends State<AddMissingPetScreen> {
       about: _aboutController.text,
       imagePath: imagePath,
       ownerName: _ownerNameController.text,
-      ownerMessage: '', // missing pet => no message
+      ownerMessage: '', 
       contactChat: _contactChatController.text,
       contactPhone: _contactPhoneController.text,
     );

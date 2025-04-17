@@ -28,7 +28,7 @@ class _Buttomnav extends State<Buttomnav> {
         currentIndex: current_page,
         onTap: (index) {
           setState(() {
-            current_page = index; // อัปเดตหน้าที่เลือก
+            current_page = index; 
           });
         },
         items: const [

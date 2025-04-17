@@ -1,4 +1,4 @@
-// user_database_helper.dart
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:io';
@@ -8,7 +8,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
-// สร้าง Model สำหรับข้อมูลผู้ใช้
+
 class User {
   final int? id;
   final String username;
@@ -35,7 +35,7 @@ class User {
   }) : createdAt = createdAt ?? DateTime.now(),
        updatedAt = updatedAt ?? DateTime.now();
 
-  // แปลง User object เป็น Map
+  
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -51,7 +51,7 @@ class User {
     };
   }
 
-  // สร้าง User object จาก Map
+  
   factory User.fromMap(Map<String, dynamic> map) {
     return User(
       id: map['id'],
@@ -67,7 +67,7 @@ class User {
     );
   }
 
-  // สร้าง copy ของ User object ที่อัปเดตบางฟิลด์
+
   User copyWith({
     int? id,
     String? username,
@@ -97,7 +97,7 @@ class UserDatabaseHelper {
   static final UserDatabaseHelper _instance = UserDatabaseHelper._internal();
   static Database? _database;
 
-  // สร้าง singleton pattern
+
   factory UserDatabaseHelper() => _instance;
 
   UserDatabaseHelper._internal();
@@ -108,14 +108,14 @@ class UserDatabaseHelper {
     return _database!;
   }
 
-  // เริ่มต้นฐานข้อมูล
+
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'user_database.db');
     return await openDatabase(path, version: 1, onCreate: _onCreate);
   }
 
-  // สร้างตารางในฐานข้อมูล
+
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
       CREATE TABLE users(
@@ -133,19 +133,19 @@ class UserDatabaseHelper {
     ''');
   }
 
-  // เข้ารหัส password ด้วย SHA-256
+
   String _hashPassword(String password) {
     var bytes = utf8.encode(password);
     var digest = sha256.convert(bytes);
     return digest.toString();
   }
 
-  // ลงทะเบียนผู้ใช้ใหม่ (Sign Up)
+
   Future<int> signUp(User user) async {
     try {
       final Database db = await database;
 
-      // เช็คว่า username หรือ email ซ้ำหรือไม่
+      
       final List<Map<String, dynamic>> usernameCheck = await db.query(
         'users',
         where: 'username = ?',
@@ -166,7 +166,7 @@ class UserDatabaseHelper {
         throw Exception('Email already exists');
       }
 
-      // เข้ารหัส password ก่อนบันทึก
+      
       var userMap = user.toMap();
       userMap['password'] = _hashPassword(user.password);
 
@@ -177,12 +177,12 @@ class UserDatabaseHelper {
     }
   }
 
-  // เข้าสู่ระบบ (Login) ด้วย username/email และ password
+  
   Future<User> login(String usernameOrEmail, String password) async {
     try {
       final Database db = await database;
 
-      // ค้นหาผู้ใช้จาก username หรือ email
+      
       final List<Map<String, dynamic>> result = await db.query(
         'users',
         where: 'username = ? OR email = ?',
@@ -196,10 +196,10 @@ class UserDatabaseHelper {
       final Map<String, dynamic> userMap = result.first;
       final String storedPassword = userMap['password'];
       
-      // เข้ารหัส password ที่ผู้ใช้ป้อนมาเพื่อเปรียบเทียบ
+      
       final String hashedPassword = _hashPassword(password);
 
-      // ตรวจสอบ password
+      
       if (storedPassword != hashedPassword) {
         throw Exception('Invalid password');
       }
@@ -211,7 +211,7 @@ class UserDatabaseHelper {
     }
   }
 
-  // ดึงข้อมูลผู้ใช้จาก ID
+  
   Future<User?> getUserById(int? id) async {
     if (id == null) return null;
     
@@ -230,7 +230,7 @@ class UserDatabaseHelper {
     return User.fromMap(result.first);
   }
 
-  // อัปเดตข้อมูลโปรไฟล์ผู้ใช้
+  
   Future<int> updateUserProfile(User user) async {
     if (user.id == null) {
       throw Exception('User ID cannot be null for update');
@@ -246,7 +246,7 @@ class UserDatabaseHelper {
     );
   }
 
-  // เปลี่ยนรหัสผ่าน
+  
   Future<int> changePassword(
     int userId,
     String currentPassword,
@@ -254,18 +254,18 @@ class UserDatabaseHelper {
   ) async {
     final Database db = await database;
 
-    // ดึงข้อมูลผู้ใช้
+    
     final user = await getUserById(userId);
     if (user == null) {
       throw Exception('User not found');
     }
 
-    // ตรวจสอบรหัสผ่านปัจจุบันด้วยการเข้ารหัสที่ผู้ใช้ป้อนมาและเปรียบเทียบกับที่เก็บในฐานข้อมูล
+    
     if (user.password != _hashPassword(currentPassword)) {
       throw Exception('Current password is incorrect');
     }
 
-    // อัปเดตรหัสผ่านใหม่
+    
     return await db.update(
       'users',
       {
@@ -277,14 +277,14 @@ class UserDatabaseHelper {
     );
   }
 
-  // ลบบัญชีผู้ใช้
+  
   Future<int> deleteUser(int userId) async {
     final Database db = await database;
 
     return await db.delete('users', where: 'id = ?', whereArgs: [userId]);
   }
 
-  // เพิ่มฟังก์ชันที่ยังไม่สมบูรณ์
+  
   Future<User?> getUserByUsername(String username) async {
     final Database db = await database;
     

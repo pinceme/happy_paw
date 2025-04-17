@@ -14,7 +14,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  bool _isLoading = false; // เพิ่มตัวแปรสำหรับแสดงสถานะการโหลด
+  bool _isLoading = false; 
 
   final AuthService _authService = AuthService();
 
@@ -37,7 +37,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           password: password,
         );
 
-        // ตรวจสอบการ mount ของ widget เพื่fอป้องกัน setState หลังจาก dispose
+        
         if (!mounted) return;
         
         setState(() {
@@ -53,7 +53,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
 
         Future.delayed(Duration(seconds: 2), () {
-          // ตรวจสอบการ mount อีกครั้งก่อนเปลี่ยนหน้า
+          
           if (!mounted) return;
           
           Navigator.pushReplacement(
@@ -62,7 +62,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         });
       } catch (e) {
-        // ตรวจสอบการ mount ของ widget เพื่อป้องกัน setState หลังจาก dispose
+        
         if (!mounted) return;
         
         setState(() {
@@ -71,7 +71,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         
         String errorMessage = 'Sign Up Failed';
         
-        // แสดงข้อความที่เฉพาะเจาะจงมากขึ้น
+       
         if (e.toString().contains('Username already exists')) {
           errorMessage = 'Username already exists. Please choose another one.';
         } else if (e.toString().contains('Email already exists')) {
@@ -150,7 +150,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: _isLoading ? null : _validateForm, // ปิดปุ่มถ้ากำลังโหลด
+                          onPressed: _isLoading ? null : _validateForm, 
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.amber[700],
                             shape: RoundedRectangleBorder(
@@ -224,7 +224,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           obscureText: isPassword,
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.amber[50], // ปรับให้อ่อนลงเพื่อให้เห็นข้อความชัดเจน
+            fillColor: Colors.amber[50], 
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide.none,
